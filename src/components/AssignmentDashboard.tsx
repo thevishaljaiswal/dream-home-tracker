@@ -22,6 +22,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import LeadCard from './LeadCard';
+import { useToast } from '@/hooks/use-toast';
 
 interface Lead {
   id: string;
@@ -42,6 +43,7 @@ interface Lead {
   createdAt: string;
   assignedTo?: string;
   stage?: string;
+  isHot?: boolean;
 }
 
 // In a real application, this would come from an API or database
@@ -54,6 +56,7 @@ const dummyAgents = [
 
 const AssignmentDashboard = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [unassignedLeads, setUnassignedLeads] = useState<Lead[]>([]);
   const [assignedLeads, setAssignedLeads] = useState<Lead[]>([]);
@@ -179,6 +182,31 @@ const AssignmentDashboard = () => {
   
   const getAgentLeads = (agentName: string) => {
     return assignedLeads.filter(lead => lead.assignedTo === agentName);
+  };
+
+  // Add this function to handle hot lead toggle
+  const handleHotToggle = (leadId: string) => {
+    const updatedLeads = leads.map(lead => {
+      if (lead.id === leadId) {
+        const newIsHot = !lead.isHot;
+        
+        toast({
+          title: newIsHot ? "Lead marked as hot" : "Lead unmarked as hot",
+          description: `${lead.firstName} ${lead.lastName} has been ${newIsHot ? "marked as a hot lead" : "removed from hot leads"}`,
+          variant: "default",
+        });
+        
+        return { ...lead, isHot: newIsHot };
+      }
+      return lead;
+    });
+    
+    setLeads(updatedLeads);
+    localStorage.setItem('leads', JSON.stringify(updatedLeads));
+    
+    // Update assigned leads
+    const updated = updatedLeads.filter(lead => lead.assignedTo);
+    setAssignedLeads(updated);
   };
 
   return (
@@ -381,7 +409,11 @@ const AssignmentDashboard = () => {
                 {getAgentLeads(selectedAgent).length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {getAgentLeads(selectedAgent).map(lead => (
-                      <LeadCard key={lead.id} lead={lead} />
+                      <LeadCard 
+                        key={lead.id} 
+                        lead={lead} 
+                        onHotToggle={() => handleHotToggle(lead.id)}
+                      />
                     ))}
                   </div>
                 ) : (
