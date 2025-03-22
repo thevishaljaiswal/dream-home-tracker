@@ -160,11 +160,11 @@ const Dashboard = () => {
       if (lead.id === leadId) {
         const newIsHot = !lead.isHot;
         
-        // Show a toast notification
+        // Show a toast notification - fix the variant to use "default" instead of "secondary"
         toast({
           title: newIsHot ? "Lead marked as hot" : "Lead unmarked as hot",
           description: `${lead.firstName} ${lead.lastName} has been ${newIsHot ? "marked as a hot lead" : "removed from hot leads"}`,
-          variant: newIsHot ? "default" : "secondary",
+          variant: newIsHot ? "default" : "default", // Changed from "secondary" to "default"
         });
         
         return { ...lead, isHot: newIsHot };

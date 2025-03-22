@@ -36,10 +36,12 @@ interface LeadCardProps {
     createdAt: string;
     stage?: string;
     assignedTo?: string;
+    isHot?: boolean;
   };
+  onHotToggle: () => void;
 }
 
-const LeadCard: React.FC<LeadCardProps> = ({ lead }) => {
+const LeadCard: React.FC<LeadCardProps> = ({ lead, onHotToggle }) => {
   const navigate = useNavigate();
   
   // Format currency for display
