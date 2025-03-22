@@ -3,9 +3,10 @@ import React, { useState } from 'react';
 import Header from '@/components/Header';
 import Dashboard from '@/components/Dashboard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { UserCog, BarChart3 } from 'lucide-react';
+import { UserCog, BarChart3, Calendar, Star } from 'lucide-react';
 import AssignmentDashboard from '@/components/AssignmentDashboard';
 import ConversionDashboard from '@/components/ConversionDashboard';
+import TimelineTracker from '@/components/TimelineTracker';
 
 const LeadsOverview = () => {
   const [activeTab, setActiveTab] = useState('leads');
@@ -26,6 +27,10 @@ const LeadsOverview = () => {
               <BarChart3 className="h-4 w-4 mr-2" />
               Conversions
             </TabsTrigger>
+            <TabsTrigger value="timeline" className="flex items-center">
+              <Calendar className="h-4 w-4 mr-2" />
+              Timeline
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="leads">
@@ -38,6 +43,10 @@ const LeadsOverview = () => {
           
           <TabsContent value="conversions">
             <ConversionDashboard />
+          </TabsContent>
+          
+          <TabsContent value="timeline">
+            <TimelineTracker />
           </TabsContent>
         </Tabs>
       </main>

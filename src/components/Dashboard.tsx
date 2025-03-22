@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserPlus, Home, Building2, Users, ListFilter, Clock, Search } from 'lucide-react';
+import { UserPlus, Home, Building2, Users, ListFilter, Clock, Search, Star, Bell, Calendar, Flag } from 'lucide-react';
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import LeadCard from './LeadCard';
+import { toast } from '@/hooks/use-toast';
+import { isPast, parseISO, isToday, isTomorrow, addDays } from 'date-fns';
 
 interface Lead {
   id: string;
@@ -36,6 +38,18 @@ interface Lead {
   createdAt: string;
   notes?: string;
   amenities?: string[];
+  isHot?: boolean;
+  assignedTo?: string;
+  stage?: string;
+  tasks?: Array<{
+    id: string;
+    title: string;
+    description?: string;
+    dueDate: string;
+    completed: boolean;
+    assignedTo: string;
+    createdAt: string;
+  }>;
 }
 
 const Dashboard = () => {
@@ -48,20 +62,52 @@ const Dashboard = () => {
     propertyType: 'all',
     timeline: 'all',
   });
+  const [activeTab, setActiveTab] = useState('all');
 
   useEffect(() => {
     // Fetch leads from localStorage
     const storedLeads = localStorage.getItem('leads');
     if (storedLeads) {
       const parsedLeads = JSON.parse(storedLeads);
-      setLeads(parsedLeads);
-      setFilteredLeads(parsedLeads);
+      // Initialize isHot property if not present
+      const updatedLeads = parsedLeads.map((lead: Lead) => ({
+        ...lead,
+        isHot: lead.isHot !== undefined ? lead.isHot : false,
+        stage: lead.stage || 'new',
+        tasks: lead.tasks || []
+      }));
+      
+      setLeads(updatedLeads);
+      setFilteredLeads(updatedLeads);
+      
+      // Update localStorage with the updated leads
+      localStorage.setItem('leads', JSON.stringify(updatedLeads));
     }
   }, []);
 
   useEffect(() => {
     // Apply filters and search
     let result = [...leads];
+    
+    // Apply tab filtering
+    if (activeTab === 'hot') {
+      result = result.filter(lead => lead.isHot === true);
+    } else if (activeTab === 'follow-up') {
+      const today = new Date();
+      result = result.filter(lead => {
+        if (!lead.tasks || lead.tasks.length === 0) return false;
+        return lead.tasks.some(task => 
+          !task.completed && 
+          (isToday(parseISO(task.dueDate)) || isTomorrow(parseISO(task.dueDate)))
+        );
+      });
+    } else if (activeTab === 'recent') {
+      // Show leads from the last 3 days
+      const threeDaysAgo = addDays(new Date(), -3);
+      result = result.filter(lead => 
+        new Date(lead.createdAt) >= threeDaysAgo
+      );
+    }
     
     // Apply filters
     if (filters.purpose !== 'all') {
@@ -90,7 +136,7 @@ const Dashboard = () => {
     }
     
     setFilteredLeads(result);
-  }, [leads, filters, searchTerm]);
+  }, [leads, filters, searchTerm, activeTab]);
 
   const getInquiryStats = () => {
     const stats = {
@@ -109,8 +155,53 @@ const Dashboard = () => {
     }, {} as Record<string, number>);
   };
 
+  const toggleHotLead = (leadId: string) => {
+    const updatedLeads = leads.map(lead => {
+      if (lead.id === leadId) {
+        const newIsHot = !lead.isHot;
+        
+        // Show a toast notification
+        toast({
+          title: newIsHot ? "Lead marked as hot" : "Lead unmarked as hot",
+          description: `${lead.firstName} ${lead.lastName} has been ${newIsHot ? "marked as a hot lead" : "removed from hot leads"}`,
+          variant: newIsHot ? "default" : "secondary",
+        });
+        
+        return { ...lead, isHot: newIsHot };
+      }
+      return lead;
+    });
+    
+    setLeads(updatedLeads);
+    localStorage.setItem('leads', JSON.stringify(updatedLeads));
+  };
+
+  const getUpcomingFollowUps = () => {
+    const followUps = leads.flatMap(lead => {
+      if (!lead.tasks) return [];
+      
+      return lead.tasks
+        .filter(task => !task.completed && !isPast(parseISO(task.dueDate)))
+        .map(task => ({
+          leadId: lead.id,
+          leadName: `${lead.firstName} ${lead.lastName}`,
+          ...task
+        }));
+    });
+    
+    // Sort by due date (earliest first)
+    return followUps.sort((a, b) => 
+      new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
+    ).slice(0, 5); // Show only the next 5 follow-ups
+  };
+
   const stats = getInquiryStats();
   const propertyStats = getPropertyTypeStats();
+  const upcomingFollowUps = getUpcomingFollowUps();
+  const hotLeadsCount = leads.filter(lead => lead.isHot).length;
+  const followUpsCount = leads.filter(lead => 
+    lead.tasks && lead.tasks.some(task => !task.completed)
+  ).length;
 
   return (
     <div className="w-full">
@@ -156,11 +247,11 @@ const Dashboard = () => {
         <div className="glass-card rounded-lg p-4 shadow-sm">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Renting</p>
-              <h2 className="text-3xl font-bold mt-1">{stats.rent}</h2>
+              <p className="text-sm font-medium text-muted-foreground">Hot Leads</p>
+              <h2 className="text-3xl font-bold mt-1">{hotLeadsCount}</h2>
             </div>
-            <div className="p-2 bg-green-50 rounded-full">
-              <Building2 className="h-5 w-5 text-green-500" />
+            <div className="p-2 bg-red-50 rounded-full">
+              <Star className="h-5 w-5 text-red-500" />
             </div>
           </div>
         </div>
@@ -168,17 +259,17 @@ const Dashboard = () => {
         <div className="glass-card rounded-lg p-4 shadow-sm">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Investment</p>
-              <h2 className="text-3xl font-bold mt-1">{stats.investment}</h2>
+              <p className="text-sm font-medium text-muted-foreground">Follow-ups</p>
+              <h2 className="text-3xl font-bold mt-1">{followUpsCount}</h2>
             </div>
-            <div className="p-2 bg-purple-50 rounded-full">
-              <Building2 className="h-5 w-5 text-purple-500" />
+            <div className="p-2 bg-amber-50 rounded-full">
+              <Bell className="h-5 w-5 text-amber-500" />
             </div>
           </div>
         </div>
       </div>
       
-      <Tabs defaultValue="all" className="mb-8">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
           <TabsList className="grid w-full md:w-auto grid-cols-4 bg-secondary/70">
             <TabsTrigger value="all" className="text-xs md:text-sm">All Leads</TabsTrigger>
@@ -292,45 +383,150 @@ const Dashboard = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-fade-in">
               {filteredLeads.map((lead) => (
-                <LeadCard key={lead.id} lead={lead} />
+                <LeadCard 
+                  key={lead.id} 
+                  lead={{
+                    ...lead,
+                    isHot: lead.isHot || false
+                  }}
+                  onHotToggle={() => toggleHotLead(lead.id)}
+                />
               ))}
             </div>
           )}
         </TabsContent>
         
         <TabsContent value="recent" className="mt-0">
-          {leads.length === 0 ? (
+          {filteredLeads.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 glass-card rounded-lg">
               <Clock className="h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-medium">No recent leads</h3>
-              <p className="text-muted-foreground mt-1">Add your first lead to get started</p>
+              <p className="text-muted-foreground mt-1">No leads added in the last 3 days</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-fade-in">
-              {leads
-                .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-                .slice(0, 6)
-                .map((lead) => (
-                  <LeadCard key={lead.id} lead={lead} />
-                ))}
+              {filteredLeads.map((lead) => (
+                <LeadCard 
+                  key={lead.id} 
+                  lead={{
+                    ...lead,
+                    isHot: lead.isHot || false
+                  }}
+                  onHotToggle={() => toggleHotLead(lead.id)}
+                />
+              ))}
             </div>
           )}
         </TabsContent>
         
         <TabsContent value="hot" className="mt-0">
-          <div className="flex flex-col items-center justify-center py-16 glass-card rounded-lg">
-            <h3 className="text-lg font-medium">Hot leads feature coming soon</h3>
-            <p className="text-muted-foreground mt-1">Priority lead tracking will be available in the next update</p>
-          </div>
+          {filteredLeads.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 glass-card rounded-lg">
+              <Star className="h-12 w-12 text-red-500 mb-4" />
+              <h3 className="text-lg font-medium">No hot leads</h3>
+              <p className="text-muted-foreground mt-1">
+                Mark leads as hot to see them here. Hot leads are high-priority prospects 
+                that require immediate attention.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-fade-in">
+              {filteredLeads.map((lead) => (
+                <LeadCard 
+                  key={lead.id} 
+                  lead={{
+                    ...lead,
+                    isHot: lead.isHot || false
+                  }}
+                  onHotToggle={() => toggleHotLead(lead.id)}
+                />
+              ))}
+            </div>
+          )}
         </TabsContent>
         
         <TabsContent value="follow-up" className="mt-0">
-          <div className="flex flex-col items-center justify-center py-16 glass-card rounded-lg">
-            <h3 className="text-lg font-medium">Follow-ups feature coming soon</h3>
-            <p className="text-muted-foreground mt-1">Lead follow-up scheduling will be available in the next update</p>
-          </div>
+          {filteredLeads.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 glass-card rounded-lg">
+              <Bell className="h-12 w-12 text-amber-500 mb-4" />
+              <h3 className="text-lg font-medium">No follow-ups</h3>
+              <p className="text-muted-foreground mt-1 text-center max-w-md">
+                Leads with upcoming tasks will appear here.<br />
+                Add tasks to leads to schedule follow-ups.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-fade-in">
+              {filteredLeads.map((lead) => (
+                <LeadCard 
+                  key={lead.id} 
+                  lead={{
+                    ...lead,
+                    isHot: lead.isHot || false
+                  }}
+                  onHotToggle={() => toggleHotLead(lead.id)}
+                />
+              ))}
+            </div>
+          )}
         </TabsContent>
       </Tabs>
+      
+      {upcomingFollowUps.length > 0 && (
+        <div className="glass-card rounded-lg p-6 mb-6">
+          <h3 className="text-lg font-semibold mb-4 flex items-center">
+            <Calendar className="h-5 w-5 mr-2 text-primary" />
+            Upcoming Follow-ups
+          </h3>
+          <div className="space-y-3">
+            {upcomingFollowUps.map((followUp) => (
+              <div key={followUp.id} className="flex items-start p-3 border rounded-md bg-secondary/5">
+                <div className="mr-3 mt-0.5">
+                  {isToday(parseISO(followUp.dueDate)) ? (
+                    <div className="h-8 w-8 rounded-full bg-red-100 flex items-center justify-center">
+                      <Flag className="h-4 w-4 text-red-500" />
+                    </div>
+                  ) : (
+                    <div className="h-8 w-8 rounded-full bg-amber-100 flex items-center justify-center">
+                      <Bell className="h-4 w-4 text-amber-500" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium text-sm">{followUp.title}</h4>
+                    <Badge variant="outline" className={`text-xs ${
+                      isToday(parseISO(followUp.dueDate)) ? 'bg-red-50 text-red-600' : ''
+                    }`}>
+                      {isToday(parseISO(followUp.dueDate)) 
+                        ? 'Today' 
+                        : isTomorrow(parseISO(followUp.dueDate))
+                          ? 'Tomorrow'
+                          : new Date(followUp.dueDate).toLocaleDateString()}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    For: {followUp.leadName}
+                  </p>
+                  <div className="flex items-center justify-between mt-1">
+                    <span className="text-xs text-muted-foreground">
+                      Assigned to: {followUp.assignedTo}
+                    </span>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-7 text-xs" 
+                      onClick={() => navigate(`/lead/${followUp.leadId}`)}
+                    >
+                      View Lead
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       
       {leads.length > 0 && (
         <div className="glass-card rounded-lg p-6 mb-6">
