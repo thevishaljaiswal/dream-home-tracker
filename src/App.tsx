@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import LeadCapture from "./pages/LeadCapture";
 import LeadsOverview from "./pages/LeadsOverview";
+import LeadDetails from "./pages/LeadDetails";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -21,6 +22,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/capture" element={<LeadCapture />} />
           <Route path="/leads" element={<LeadsOverview />} />
+          <Route path="/lead/:id" element={<LeadDetails />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

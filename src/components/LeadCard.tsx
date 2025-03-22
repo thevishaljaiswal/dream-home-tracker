@@ -3,6 +3,7 @@ import React from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { Phone, Mail, MapPin, Clock, CalendarClock, Building } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useNavigate } from 'react-router-dom';
 
 import {
   Card,
@@ -33,10 +34,14 @@ interface LeadCardProps {
     timeline: string;
     preferredContactTime: string;
     createdAt: string;
+    stage?: string;
+    assignedTo?: string;
   };
 }
 
 const LeadCard: React.FC<LeadCardProps> = ({ lead }) => {
+  const navigate = useNavigate();
+  
   // Format currency for display
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -141,8 +146,16 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead }) => {
         </div>
       </CardContent>
       <CardFooter className="flex justify-between pt-0">
-        <span className="text-xs text-muted-foreground capitalize">Via {lead.leadSource.replace(/_/g, ' ')}</span>
-        <Button variant="outline" size="sm" className="text-xs h-8">
+        <span className="text-xs text-muted-foreground capitalize">
+          Via {lead.leadSource.replace(/_/g, ' ')}
+          {lead.assignedTo && ` • Assigned to ${lead.assignedTo}`}
+        </span>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="text-xs h-8"
+          onClick={() => navigate(`/lead/${lead.id}`)}
+        >
           View Details
         </Button>
       </CardFooter>
