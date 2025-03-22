@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { formatDistanceToNow } from 'date-fns';
-import { Phone, Mail, MapPin, Clock, CalendarClock, Building } from 'lucide-react';
+import { Phone, Mail, MapPin, Clock, CalendarClock, Building, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 
@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Toggle } from "@/components/ui/toggle";
 
 interface LeadCardProps {
   lead: {
@@ -90,8 +91,19 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, onHotToggle }) => {
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <div>
-            <CardTitle className="text-xl font-semibold">
+            <CardTitle className="text-xl font-semibold flex items-center">
               {lead.firstName} {lead.lastName}
+              <Toggle
+                className="ml-2 p-0 h-6 w-6 data-[state=on]:bg-amber-100 data-[state=on]:text-amber-600 hover:bg-amber-50"
+                pressed={lead.isHot}
+                onPressedChange={onHotToggle}
+                title={lead.isHot ? "Unmark as hot lead" : "Mark as hot lead"}
+              >
+                <Star className={cn(
+                  "h-4 w-4",
+                  lead.isHot ? "fill-current text-amber-500" : "text-muted-foreground"
+                )} />
+              </Toggle>
             </CardTitle>
             <CardDescription className="flex items-center mt-1">
               <Clock className="h-3.5 w-3.5 mr-1 text-muted-foreground" />

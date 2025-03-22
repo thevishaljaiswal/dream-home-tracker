@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 interface Lead {
   id: string;
@@ -53,6 +54,7 @@ interface TimelineEvent {
 
 const TimelineTracker: React.FC = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([]);
   const [filter, setFilter] = useState<'all' | 'hot' | 'stage_change' | 'assignment'>('all');
   const [isLoading, setIsLoading] = useState(true);
