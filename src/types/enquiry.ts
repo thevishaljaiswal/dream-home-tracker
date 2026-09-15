@@ -7,6 +7,7 @@ export interface CostSheetCharge {
 export interface CostSheet {
   quotationNumber: string;
   generatedAt: string;
+  version: number;
   charges: CostSheetCharge[];
   discountPercent: number;
   gstPercent: number;
@@ -15,6 +16,23 @@ export interface CostSheet {
   validityDays: number;
   paymentPlan: string;
   remarks?: string;
+}
+
+export interface QuotationChange {
+  field: string;
+  from: string;
+  to: string;
+}
+
+export interface QuotationLogEntry {
+  id: string;
+  at: string;
+  version: number;
+  quotationNumber: string;
+  action: 'created' | 'updated';
+  grandTotal: number;
+  changes: QuotationChange[];
+  changedBy?: string;
 }
 
 export interface Enquiry {
