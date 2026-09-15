@@ -217,6 +217,62 @@ const LeadDetails = () => {
     updateLead(updatedLead);
   };
 
+  const handleAddEnquiry = (enquiry: Omit<Enquiry, 'id' | 'createdAt'>) => {
+    if (!lead) return;
+
+    const newEnquiry: Enquiry = {
+      id: crypto.randomUUID(),
+      createdAt: new Date().toISOString(),
+      ...enquiry,
+    };
+
+    const newActivity: Activity = {
+      id: crypto.randomUUID(),
+      leadId: lead.id,
+      type: 'enquiry',
+      description: `Enquiry added: ${newEnquiry.projectName} (${newEnquiry.unitConfiguration})`,
+      date: new Date().toISOString(),
+    };
+
+    updateLead({
+      ...lead,
+      enquiries: [...(lead.enquiries || []), newEnquiry],
+      activities: [...(lead.activities || []), newActivity],
+    });
+  };
+
+  const handleUpdateEnquiry = (updatedEnquiry: Enquiry) => {
+    if (!lead) return;
+
+    const activities = [...(lead.activities || [])];
+    if (updatedEnquiry.costSheet) {
+      activities.push({
+        id: crypto.randomUUID(),
+        leadId: lead.id,
+        type: 'quotation',
+        description: `Cost sheet ${updatedEnquiry.costSheet.quotationNumber} generated for ${updatedEnquiry.projectName}`,
+        date: new Date().toISOString(),
+      });
+    }
+
+    updateLead({
+      ...lead,
+      enquiries: (lead.enquiries || []).map((e) =>
+        e.id === updatedEnquiry.id ? updatedEnquiry : e
+      ),
+      activities,
+    });
+  };
+
+  const handleDeleteEnquiry = (enquiryId: string) => {
+    if (!lead) return;
+
+    updateLead({
+      ...lead,
+      enquiries: (lead.enquiries || []).filter((e) => e.id !== enquiryId),
+    });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen pb-20">
