@@ -554,11 +554,22 @@ const LeadDetails = () => {
         </div>
         
         <div className="mt-6">
-          <Tabs defaultValue="timeline">
+          <Tabs defaultValue="enquiries">
             <TabsList>
+              <TabsTrigger value="enquiries">
+                Enquiries {lead.enquiries?.length ? `(${lead.enquiries.length})` : ''}
+              </TabsTrigger>
               <TabsTrigger value="timeline">Activity Timeline</TabsTrigger>
               <TabsTrigger value="conversion">Conversion Analytics</TabsTrigger>
             </TabsList>
+            <TabsContent value="enquiries" className="mt-6">
+              <LeadEnquiries
+                enquiries={lead.enquiries || []}
+                onAddEnquiry={handleAddEnquiry}
+                onUpdateEnquiry={handleUpdateEnquiry}
+                onDeleteEnquiry={handleDeleteEnquiry}
+              />
+            </TabsContent>
             <TabsContent value="timeline" className="mt-6">
               <LeadTimeline lead={lead} />
             </TabsContent>
