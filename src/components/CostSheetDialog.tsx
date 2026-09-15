@@ -97,14 +97,38 @@ const CostSheetDialog: React.FC<CostSheetDialogProps> = ({
     setSheet({ ...sheet, charges: sheet.charges.filter((c) => c.id !== id) });
 
   const handleSave = () => {
+    const previous = enquiry.costSheet;
+    const isFirst = !previous;
+    const nextSheet: CostSheet = {
+      ...sheet,
+      version: isFirst ? 1 : (previous?.version || 1) + 1,
+      generatedAt: new Date().toISOString(),
+    };
+
+    const entry = buildLogEntry(previous, nextSheet, baseValue);
+
+    if (!entry) {
+      toast({
+        title: 'No changes to save',
+        description: 'This quotation is identical to the last saved version.',
+      });
+      return;
+    }
+
     onSave({
       ...enquiry,
       status: enquiry.status === 'open' ? 'quoted' : enquiry.status,
-      costSheet: { ...sheet, generatedAt: new Date().toISOString() },
+      costSheet: nextSheet,
+      quotationLog: [...(enquiry.quotationLog || []), entry],
+      updatedAt: new Date().toISOString(),
     });
+
+    setSheet(nextSheet);
     toast({
-      title: 'Cost sheet saved',
-      description: `Quotation ${sheet.quotationNumber} is ready to share.`,
+      title: isFirst ? 'Cost sheet saved' : `Quotation updated to v${nextSheet.version}`,
+      description: `${entry.changes.length} change${
+        entry.changes.length === 1 ? '' : 's'
+      } recorded in the change log.`,
     });
   };
 
