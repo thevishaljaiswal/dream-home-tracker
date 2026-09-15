@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { format } from 'date-fns';
+import { buildLogEntry } from '@/lib/quotation';
 import { toast } from '@/hooks/use-toast';
 import {
   CostSheet,
