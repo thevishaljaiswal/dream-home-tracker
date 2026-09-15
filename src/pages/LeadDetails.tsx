@@ -29,6 +29,8 @@ import { Progress } from '@/components/ui/progress';
 import TaskReminder from '@/components/TaskReminder';
 import LeadTimeline from '@/components/LeadTimeline';
 import AssignLeadForm from '@/components/AssignLeadForm';
+import LeadEnquiries from '@/components/LeadEnquiries';
+import { Enquiry } from '@/types/enquiry';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from '@/hooks/use-toast';
 
@@ -57,6 +59,7 @@ interface Lead {
   lastContact?: string;
   tasks?: Task[];
   activities?: Activity[];
+  enquiries?: Enquiry[];
 }
 
 interface Task {
@@ -97,6 +100,7 @@ const LeadDetails = () => {
           // Ensure all required properties exist
           foundLead.tasks = foundLead.tasks || [];
           foundLead.activities = foundLead.activities || [];
+          foundLead.enquiries = foundLead.enquiries || [];
           foundLead.stage = foundLead.stage || 'new';
           
           setLead(foundLead);
