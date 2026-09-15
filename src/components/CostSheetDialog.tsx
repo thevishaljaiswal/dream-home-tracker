@@ -208,7 +208,9 @@ const CostSheetDialog: React.FC<CostSheetDialogProps> = ({
         <div className="space-y-5">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
             <div className="p-3 rounded-md bg-secondary/20">
-              <p className="text-xs text-muted-foreground">Quotation No.</p>
+              <p className="text-xs text-muted-foreground">
+                Quotation No. (v{sheet.version || 1})
+              </p>
               <p className="font-medium">{sheet.quotationNumber}</p>
             </div>
             <div className="p-3 rounded-md bg-secondary/20">
