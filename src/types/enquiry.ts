@@ -48,6 +48,8 @@ export interface Enquiry {
   status: string;
   notes?: string;
   costSheet?: CostSheet;
+  quotationLog?: QuotationLogEntry[];
+  updatedAt?: string;
 }
 
 export const UNIT_CONFIGURATIONS = [

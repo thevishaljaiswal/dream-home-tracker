@@ -57,6 +57,7 @@ const CostSheetDialog: React.FC<CostSheetDialogProps> = ({
         1000 + Math.random() * 9000
       )}`,
       generatedAt: new Date().toISOString(),
+      version: 1,
       charges: defaultCharges(baseValue),
       discountPercent: 0,
       gstPercent: 5,
