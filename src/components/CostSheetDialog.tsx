@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { format } from 'date-fns';
+import { buildLogEntry } from '@/lib/quotation';
 import { toast } from '@/hooks/use-toast';
 import {
   CostSheet,
@@ -57,6 +58,7 @@ const CostSheetDialog: React.FC<CostSheetDialogProps> = ({
         1000 + Math.random() * 9000
       )}`,
       generatedAt: new Date().toISOString(),
+      version: 1,
       charges: defaultCharges(baseValue),
       discountPercent: 0,
       gstPercent: 5,
@@ -96,14 +98,38 @@ const CostSheetDialog: React.FC<CostSheetDialogProps> = ({
     setSheet({ ...sheet, charges: sheet.charges.filter((c) => c.id !== id) });
 
   const handleSave = () => {
+    const previous = enquiry.costSheet;
+    const isFirst = !previous;
+    const nextSheet: CostSheet = {
+      ...sheet,
+      version: isFirst ? 1 : (previous?.version || 1) + 1,
+      generatedAt: new Date().toISOString(),
+    };
+
+    const entry = buildLogEntry(previous, nextSheet, baseValue);
+
+    if (!entry) {
+      toast({
+        title: 'No changes to save',
+        description: 'This quotation is identical to the last saved version.',
+      });
+      return;
+    }
+
     onSave({
       ...enquiry,
       status: enquiry.status === 'open' ? 'quoted' : enquiry.status,
-      costSheet: { ...sheet, generatedAt: new Date().toISOString() },
+      costSheet: nextSheet,
+      quotationLog: [...(enquiry.quotationLog || []), entry],
+      updatedAt: new Date().toISOString(),
     });
+
+    setSheet(nextSheet);
     toast({
-      title: 'Cost sheet saved',
-      description: `Quotation ${sheet.quotationNumber} is ready to share.`,
+      title: isFirst ? 'Cost sheet saved' : `Quotation updated to v${nextSheet.version}`,
+      description: `${entry.changes.length} change${
+        entry.changes.length === 1 ? '' : 's'
+      } recorded in the change log.`,
     });
   };
 
@@ -182,7 +208,9 @@ const CostSheetDialog: React.FC<CostSheetDialogProps> = ({
         <div className="space-y-5">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
             <div className="p-3 rounded-md bg-secondary/20">
-              <p className="text-xs text-muted-foreground">Quotation No.</p>
+              <p className="text-xs text-muted-foreground">
+                Quotation No. (v{sheet.version || 1})
+              </p>
               <p className="font-medium">{sheet.quotationNumber}</p>
             </div>
             <div className="p-3 rounded-md bg-secondary/20">

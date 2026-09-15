@@ -245,14 +245,42 @@ const LeadDetails = () => {
     if (!lead) return;
 
     const activities = [...(lead.activities || [])];
-    if (updatedEnquiry.costSheet) {
+    const previous = (lead.enquiries || []).find((e) => e.id === updatedEnquiry.id);
+    const newLogEntries = (updatedEnquiry.quotationLog || []).slice(
+      previous?.quotationLog?.length || 0
+    );
+
+    newLogEntries.forEach((entry) => {
       activities.push({
         id: crypto.randomUUID(),
         leadId: lead.id,
         type: 'quotation',
-        description: `Cost sheet ${updatedEnquiry.costSheet.quotationNumber} generated for ${updatedEnquiry.projectName}`,
-        date: new Date().toISOString(),
+        description: `Quotation ${entry.quotationNumber} v${entry.version} ${entry.action} for ${updatedEnquiry.projectName} — ${entry.changes.length} change(s)`,
+        date: entry.at,
       });
+    });
+
+    if (newLogEntries.length === 0 && previous) {
+      const detailsChanged =
+        previous.projectName !== updatedEnquiry.projectName ||
+        previous.towerBlock !== updatedEnquiry.towerBlock ||
+        previous.unitNumber !== updatedEnquiry.unitNumber ||
+        previous.unitConfiguration !== updatedEnquiry.unitConfiguration ||
+        previous.carpetArea !== updatedEnquiry.carpetArea ||
+        previous.ratePerSqft !== updatedEnquiry.ratePerSqft ||
+        previous.channel !== updatedEnquiry.channel ||
+        previous.status !== updatedEnquiry.status ||
+        (previous.notes || '') !== (updatedEnquiry.notes || '');
+
+      if (detailsChanged) {
+        activities.push({
+          id: crypto.randomUUID(),
+          leadId: lead.id,
+          type: 'enquiry',
+          description: `Enquiry updated: ${updatedEnquiry.projectName} (${updatedEnquiry.unitConfiguration})`,
+          date: new Date().toISOString(),
+        });
+      }
     }
 
     updateLead({

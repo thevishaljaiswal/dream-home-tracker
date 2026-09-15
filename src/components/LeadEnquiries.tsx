@@ -1,5 +1,15 @@
 import React, { useState } from 'react';
-import { Plus, Building2, IndianRupee, FileText, Trash2, Tag } from 'lucide-react';
+import {
+  Plus,
+  Building2,
+  IndianRupee,
+  FileText,
+  Trash2,
+  Tag,
+  Pencil,
+  History,
+  ArrowRight,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,7 +22,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import {
   Select,
@@ -25,6 +34,7 @@ import { format } from 'date-fns';
 import { toast } from '@/hooks/use-toast';
 import CostSheetDialog from '@/components/CostSheetDialog';
 import { Enquiry, UNIT_CONFIGURATIONS, ENQUIRY_CHANNELS, ENQUIRY_STATUSES } from '@/types/enquiry';
+import { formatINR } from '@/lib/quotation';
 
 interface LeadEnquiriesProps {
   enquiries: Enquiry[];
@@ -45,13 +55,6 @@ const emptyForm = {
   notes: '',
 };
 
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    maximumFractionDigits: 0,
-  }).format(value || 0);
-
 const LeadEnquiries: React.FC<LeadEnquiriesProps> = ({
   enquiries,
   onAddEnquiry,
@@ -59,8 +62,32 @@ const LeadEnquiries: React.FC<LeadEnquiriesProps> = ({
   onDeleteEnquiry,
 }) => {
   const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [costSheetFor, setCostSheetFor] = useState<Enquiry | null>(null);
+  const [logFor, setLogFor] = useState<Enquiry | null>(null);
+
+  const openNew = () => {
+    setEditingId(null);
+    setForm(emptyForm);
+    setOpen(true);
+  };
+
+  const openEdit = (enquiry: Enquiry) => {
+    setEditingId(enquiry.id);
+    setForm({
+      projectName: enquiry.projectName,
+      towerBlock: enquiry.towerBlock || '',
+      unitNumber: enquiry.unitNumber || '',
+      unitConfiguration: enquiry.unitConfiguration,
+      carpetArea: enquiry.carpetArea,
+      ratePerSqft: enquiry.ratePerSqft,
+      channel: enquiry.channel,
+      status: enquiry.status,
+      notes: enquiry.notes || '',
+    });
+    setOpen(true);
+  };
 
   const handleSubmit = () => {
     if (!form.projectName.trim()) {
@@ -72,7 +99,7 @@ const LeadEnquiries: React.FC<LeadEnquiriesProps> = ({
       return;
     }
 
-    onAddEnquiry({
+    const payload = {
       projectName: form.projectName.trim(),
       towerBlock: form.towerBlock.trim(),
       unitNumber: form.unitNumber.trim(),
@@ -82,9 +109,23 @@ const LeadEnquiries: React.FC<LeadEnquiriesProps> = ({
       channel: form.channel,
       status: form.status,
       notes: form.notes.trim(),
-    });
+    };
+
+    if (editingId) {
+      const existing = enquiries.find((e) => e.id === editingId);
+      if (existing) {
+        onUpdateEnquiry({ ...existing, ...payload, updatedAt: new Date().toISOString() });
+        toast({
+          title: 'Enquiry updated',
+          description: `${payload.projectName} has been updated.`,
+        });
+      }
+    } else {
+      onAddEnquiry(payload);
+    }
 
     setForm(emptyForm);
+    setEditingId(null);
     setOpen(false);
   };
 
@@ -98,146 +139,156 @@ const LeadEnquiries: React.FC<LeadEnquiriesProps> = ({
           </p>
         </div>
 
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm">
-              <Plus className="h-4 w-4 mr-1" />
-              New Enquiry
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Add Enquiry</DialogTitle>
-            </DialogHeader>
+        <Button size="sm" onClick={openNew}>
+          <Plus className="h-4 w-4 mr-1" />
+          New Enquiry
+        </Button>
+      </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-2">
-              <div className="sm:col-span-2">
-                <Label htmlFor="projectName">Project</Label>
-                <Input
-                  id="projectName"
-                  value={form.projectName}
-                  onChange={(e) => setForm({ ...form, projectName: e.target.value })}
-                  placeholder="e.g. Skyline Residences"
-                />
-              </div>
+      <Dialog
+        open={open}
+        onOpenChange={(isOpen) => {
+          setOpen(isOpen);
+          if (!isOpen) {
+            setEditingId(null);
+            setForm(emptyForm);
+          }
+        }}
+      >
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editingId ? 'Edit Enquiry' : 'Add Enquiry'}</DialogTitle>
+          </DialogHeader>
 
-              <div>
-                <Label htmlFor="towerBlock">Tower / Block</Label>
-                <Input
-                  id="towerBlock"
-                  value={form.towerBlock}
-                  onChange={(e) => setForm({ ...form, towerBlock: e.target.value })}
-                  placeholder="Tower B"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="unitNumber">Unit No.</Label>
-                <Input
-                  id="unitNumber"
-                  value={form.unitNumber}
-                  onChange={(e) => setForm({ ...form, unitNumber: e.target.value })}
-                  placeholder="B-1204"
-                />
-              </div>
-
-              <div>
-                <Label>Unit Configuration</Label>
-                <Select
-                  value={form.unitConfiguration}
-                  onValueChange={(value) => setForm({ ...form, unitConfiguration: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {UNIT_CONFIGURATIONS.map((config) => (
-                      <SelectItem key={config} value={config}>
-                        {config}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label>Channel</Label>
-                <Select
-                  value={form.channel}
-                  onValueChange={(value) => setForm({ ...form, channel: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ENQUIRY_CHANNELS.map((channel) => (
-                      <SelectItem key={channel.value} value={channel.value}>
-                        {channel.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="carpetArea">Carpet Area (sq.ft)</Label>
-                <Input
-                  id="carpetArea"
-                  type="number"
-                  value={form.carpetArea}
-                  onChange={(e) => setForm({ ...form, carpetArea: Number(e.target.value) })}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="ratePerSqft">Rate / sq.ft</Label>
-                <Input
-                  id="ratePerSqft"
-                  type="number"
-                  value={form.ratePerSqft}
-                  onChange={(e) => setForm({ ...form, ratePerSqft: Number(e.target.value) })}
-                />
-              </div>
-
-              <div>
-                <Label>Status</Label>
-                <Select
-                  value={form.status}
-                  onValueChange={(value) => setForm({ ...form, status: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ENQUIRY_STATUSES.map((status) => (
-                      <SelectItem key={status.value} value={status.value}>
-                        {status.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="sm:col-span-2">
-                <Label htmlFor="enquiryNotes">Notes</Label>
-                <Textarea
-                  id="enquiryNotes"
-                  value={form.notes}
-                  onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                  placeholder="Preferred floor, view, payment plan..."
-                />
-              </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-2">
+            <div className="sm:col-span-2">
+              <Label htmlFor="projectName">Project</Label>
+              <Input
+                id="projectName"
+                value={form.projectName}
+                onChange={(e) => setForm({ ...form, projectName: e.target.value })}
+                placeholder="e.g. Skyline Residences"
+              />
             </div>
 
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleSubmit}>Add Enquiry</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
+            <div>
+              <Label htmlFor="towerBlock">Tower / Block</Label>
+              <Input
+                id="towerBlock"
+                value={form.towerBlock}
+                onChange={(e) => setForm({ ...form, towerBlock: e.target.value })}
+                placeholder="Tower B"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="unitNumber">Unit No.</Label>
+              <Input
+                id="unitNumber"
+                value={form.unitNumber}
+                onChange={(e) => setForm({ ...form, unitNumber: e.target.value })}
+                placeholder="B-1204"
+              />
+            </div>
+
+            <div>
+              <Label>Unit Configuration</Label>
+              <Select
+                value={form.unitConfiguration}
+                onValueChange={(value) => setForm({ ...form, unitConfiguration: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {UNIT_CONFIGURATIONS.map((config) => (
+                    <SelectItem key={config} value={config}>
+                      {config}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Channel</Label>
+              <Select
+                value={form.channel}
+                onValueChange={(value) => setForm({ ...form, channel: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ENQUIRY_CHANNELS.map((channel) => (
+                    <SelectItem key={channel.value} value={channel.value}>
+                      {channel.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="carpetArea">Carpet Area (sq.ft)</Label>
+              <Input
+                id="carpetArea"
+                type="number"
+                value={form.carpetArea}
+                onChange={(e) => setForm({ ...form, carpetArea: Number(e.target.value) })}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="ratePerSqft">Rate / sq.ft</Label>
+              <Input
+                id="ratePerSqft"
+                type="number"
+                value={form.ratePerSqft}
+                onChange={(e) => setForm({ ...form, ratePerSqft: Number(e.target.value) })}
+              />
+            </div>
+
+            <div>
+              <Label>Status</Label>
+              <Select
+                value={form.status}
+                onValueChange={(value) => setForm({ ...form, status: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ENQUIRY_STATUSES.map((status) => (
+                    <SelectItem key={status.value} value={status.value}>
+                      {status.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="sm:col-span-2">
+              <Label htmlFor="enquiryNotes">Notes</Label>
+              <Textarea
+                id="enquiryNotes"
+                value={form.notes}
+                onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                placeholder="Preferred floor, view, payment plan..."
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSubmit}>
+              {editingId ? 'Save Changes' : 'Add Enquiry'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {enquiries.length === 0 ? (
         <div className="text-center py-10">
@@ -254,6 +305,7 @@ const LeadEnquiries: React.FC<LeadEnquiriesProps> = ({
               ENQUIRY_STATUSES.find((s) => s.value === enquiry.status)?.label ?? enquiry.status;
             const channelLabel =
               ENQUIRY_CHANNELS.find((c) => c.value === enquiry.channel)?.label ?? enquiry.channel;
+            const logCount = enquiry.quotationLog?.length || 0;
 
             return (
               <Card key={enquiry.id} className="border bg-secondary/10">
@@ -264,6 +316,9 @@ const LeadEnquiries: React.FC<LeadEnquiriesProps> = ({
                         <h4 className="font-semibold">{enquiry.projectName}</h4>
                         <Badge variant="outline">{enquiry.unitConfiguration}</Badge>
                         <Badge className="capitalize">{statusLabel}</Badge>
+                        {enquiry.costSheet && (
+                          <Badge variant="secondary">v{enquiry.costSheet.version || 1}</Badge>
+                        )}
                       </div>
 
                       <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 text-sm text-muted-foreground">
@@ -280,7 +335,7 @@ const LeadEnquiries: React.FC<LeadEnquiriesProps> = ({
                           <IndianRupee className="h-3.5 w-3.5 mr-1.5 text-primary" />
                           {enquiry.carpetArea} sq.ft @ {enquiry.ratePerSqft}/sq.ft
                         </span>
-                        <span>Base value: {formatCurrency(baseValue)}</span>
+                        <span>Base value: {formatINR(baseValue)}</span>
                       </div>
 
                       {enquiry.notes && (
@@ -291,15 +346,30 @@ const LeadEnquiries: React.FC<LeadEnquiriesProps> = ({
 
                       <p className="text-xs text-muted-foreground mt-2">
                         Created {format(new Date(enquiry.createdAt), 'MMM d, yyyy')}
+                        {enquiry.updatedAt &&
+                          ` · Updated ${format(new Date(enquiry.updatedAt), 'MMM d, yyyy')}`}
                         {enquiry.costSheet &&
                           ` · Quotation ${enquiry.costSheet.quotationNumber}`}
                       </p>
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
+                      <Button size="sm" variant="outline" onClick={() => openEdit(enquiry)}>
+                        <Pencil className="h-4 w-4 mr-1" />
+                        Edit
+                      </Button>
                       <Button size="sm" variant="outline" onClick={() => setCostSheetFor(enquiry)}>
                         <FileText className="h-4 w-4 mr-1" />
                         Cost Sheet
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        disabled={logCount === 0}
+                        onClick={() => setLogFor(enquiry)}
+                      >
+                        <History className="h-4 w-4 mr-1" />
+                        Log {logCount > 0 && `(${logCount})`}
                       </Button>
                       <Button
                         size="sm"
@@ -329,6 +399,49 @@ const LeadEnquiries: React.FC<LeadEnquiriesProps> = ({
           }}
         />
       )}
+
+      <Dialog open={!!logFor} onOpenChange={(isOpen) => !isOpen && setLogFor(null)}>
+        <DialogContent className="max-w-xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              Quotation Change Log{logFor ? ` — ${logFor.projectName}` : ''}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {[...(logFor?.quotationLog || [])].reverse().map((entry) => (
+              <div key={entry.id} className="border rounded-md p-3 bg-secondary/10">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center gap-2">
+                    <Badge variant={entry.action === 'created' ? 'default' : 'secondary'}>
+                      v{entry.version} {entry.action}
+                    </Badge>
+                    <span className="text-sm font-medium">{entry.quotationNumber}</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {format(new Date(entry.at), 'dd MMM yyyy, h:mm a')}
+                  </span>
+                </div>
+
+                <p className="text-xs text-muted-foreground mt-1">
+                  Total payable: {formatINR(entry.grandTotal)}
+                </p>
+
+                <ul className="mt-2 space-y-1 text-sm">
+                  {entry.changes.map((change, index) => (
+                    <li key={index} className="flex flex-wrap items-center gap-1.5">
+                      <span className="text-muted-foreground">{change.field}:</span>
+                      <span className="line-through text-muted-foreground">{change.from}</span>
+                      <ArrowRight className="h-3 w-3 text-primary" />
+                      <span className="font-medium">{change.to}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
