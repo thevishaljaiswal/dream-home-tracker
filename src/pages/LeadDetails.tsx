@@ -29,6 +29,8 @@ import { Progress } from '@/components/ui/progress';
 import TaskReminder from '@/components/TaskReminder';
 import LeadTimeline from '@/components/LeadTimeline';
 import AssignLeadForm from '@/components/AssignLeadForm';
+import LeadEnquiries from '@/components/LeadEnquiries';
+import { Enquiry } from '@/types/enquiry';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from '@/hooks/use-toast';
 
@@ -57,6 +59,7 @@ interface Lead {
   lastContact?: string;
   tasks?: Task[];
   activities?: Activity[];
+  enquiries?: Enquiry[];
 }
 
 interface Task {
@@ -97,6 +100,7 @@ const LeadDetails = () => {
           // Ensure all required properties exist
           foundLead.tasks = foundLead.tasks || [];
           foundLead.activities = foundLead.activities || [];
+          foundLead.enquiries = foundLead.enquiries || [];
           foundLead.stage = foundLead.stage || 'new';
           
           setLead(foundLead);
@@ -211,6 +215,62 @@ const LeadDetails = () => {
     };
     
     updateLead(updatedLead);
+  };
+
+  const handleAddEnquiry = (enquiry: Omit<Enquiry, 'id' | 'createdAt'>) => {
+    if (!lead) return;
+
+    const newEnquiry: Enquiry = {
+      id: crypto.randomUUID(),
+      createdAt: new Date().toISOString(),
+      ...enquiry,
+    };
+
+    const newActivity: Activity = {
+      id: crypto.randomUUID(),
+      leadId: lead.id,
+      type: 'enquiry',
+      description: `Enquiry added: ${newEnquiry.projectName} (${newEnquiry.unitConfiguration})`,
+      date: new Date().toISOString(),
+    };
+
+    updateLead({
+      ...lead,
+      enquiries: [...(lead.enquiries || []), newEnquiry],
+      activities: [...(lead.activities || []), newActivity],
+    });
+  };
+
+  const handleUpdateEnquiry = (updatedEnquiry: Enquiry) => {
+    if (!lead) return;
+
+    const activities = [...(lead.activities || [])];
+    if (updatedEnquiry.costSheet) {
+      activities.push({
+        id: crypto.randomUUID(),
+        leadId: lead.id,
+        type: 'quotation',
+        description: `Cost sheet ${updatedEnquiry.costSheet.quotationNumber} generated for ${updatedEnquiry.projectName}`,
+        date: new Date().toISOString(),
+      });
+    }
+
+    updateLead({
+      ...lead,
+      enquiries: (lead.enquiries || []).map((e) =>
+        e.id === updatedEnquiry.id ? updatedEnquiry : e
+      ),
+      activities,
+    });
+  };
+
+  const handleDeleteEnquiry = (enquiryId: string) => {
+    if (!lead) return;
+
+    updateLead({
+      ...lead,
+      enquiries: (lead.enquiries || []).filter((e) => e.id !== enquiryId),
+    });
   };
 
   if (loading) {
@@ -494,11 +554,22 @@ const LeadDetails = () => {
         </div>
         
         <div className="mt-6">
-          <Tabs defaultValue="timeline">
+          <Tabs defaultValue="enquiries">
             <TabsList>
+              <TabsTrigger value="enquiries">
+                Enquiries {lead.enquiries?.length ? `(${lead.enquiries.length})` : ''}
+              </TabsTrigger>
               <TabsTrigger value="timeline">Activity Timeline</TabsTrigger>
               <TabsTrigger value="conversion">Conversion Analytics</TabsTrigger>
             </TabsList>
+            <TabsContent value="enquiries" className="mt-6">
+              <LeadEnquiries
+                enquiries={lead.enquiries || []}
+                onAddEnquiry={handleAddEnquiry}
+                onUpdateEnquiry={handleUpdateEnquiry}
+                onDeleteEnquiry={handleDeleteEnquiry}
+              />
+            </TabsContent>
             <TabsContent value="timeline" className="mt-6">
               <LeadTimeline lead={lead} />
             </TabsContent>
