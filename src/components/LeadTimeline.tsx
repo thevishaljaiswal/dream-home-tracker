@@ -6,7 +6,9 @@ import {
   MessageSquare, 
   User, 
   Bell, 
-  ArrowRight 
+  ArrowRight,
+  Building2,
+  FileText
 } from 'lucide-react';
 
 interface Activity {
@@ -108,6 +110,10 @@ const LeadTimeline: React.FC<{ lead: Lead }> = ({ lead }) => {
         return <ClipboardCheck className="h-5 w-5 text-green-500" />;
       case 'stage_change':
         return <ArrowRight className="h-5 w-5 text-primary" />;
+      case 'enquiry':
+        return <Building2 className="h-5 w-5 text-indigo-500" />;
+      case 'quotation':
+        return <FileText className="h-5 w-5 text-teal-500" />;
       default:
         return <MessageSquare className="h-5 w-5 text-gray-500" />;
     }
