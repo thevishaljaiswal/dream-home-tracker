@@ -33,6 +33,7 @@ import LeadEnquiries from '@/components/LeadEnquiries';
 import { Enquiry } from '@/types/enquiry';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from '@/hooks/use-toast';
+import { formatINRShort } from '@/lib/currency';
 
 interface Lead {
   id: string;
@@ -119,13 +120,7 @@ const LeadDetails = () => {
     return Math.round(((currentIndex + 1) / stages.length) * 100);
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0
-    }).format(value);
-  };
+  const formatCurrency = (value: number) => formatINRShort(value);
 
   const updateLead = (updatedLead: Lead) => {
     const storedLeads = localStorage.getItem('leads');

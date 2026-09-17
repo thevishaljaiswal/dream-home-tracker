@@ -16,6 +16,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Toggle } from "@/components/ui/toggle";
+import { formatINRShort } from '@/lib/currency';
 
 interface LeadCardProps {
   lead: {
@@ -46,13 +47,7 @@ const LeadCard: React.FC<LeadCardProps> = ({ lead, onHotToggle }) => {
   const navigate = useNavigate();
   
   // Format currency for display
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0
-    }).format(value);
-  };
+  const formatCurrency = (value: number) => formatINRShort(value);
   
   // Get a color based on inquiry purpose
   const getInquiryColor = (purpose: string) => {
