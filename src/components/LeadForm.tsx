@@ -29,6 +29,15 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatINRShort, INDIAN_LOCATIONS } from "@/lib/currency";
+import {
+  LEAD_SOURCES,
+  SOURCE_GROUPS,
+  SOURCE_SUBGROUPS,
+  CHANNELS,
+  PATHWAYS,
+  labelOf,
+  subgroupLabel,
+} from "@/lib/leadSources";
 import { Slider } from "@/components/ui/slider";
 import { 
   Card, 
@@ -71,23 +80,11 @@ const formSchema = z.object({
   amenities: z.array(z.string()).optional(),
   
   // Additional Details
-  leadSource: z.enum([
-    "website", 
-    "social_media", 
-    "portal_99acres",
-    "portal_magicbricks",
-    "portal_housing",
-    "portal_nobroker",
-    "walk_in", 
-    "call_center", 
-    "email_marketing", 
-    "whatsapp",
-    "chatbot", 
-    "channel_partner",
-    "property_expo",
-    "referral",
-    "other"
-  ]),
+  leadSource: z.string().min(1, "Lead source is required."),
+  sourceGroup: z.string().min(1, "Source group is required."),
+  sourceSubgroup: z.string().min(1, "Source subgroup is required."),
+  channel: z.string().min(1, "Channel is required."),
+  pathway: z.string().min(1, "Pathway is required."),
   inquiryPurpose: z.enum(["buy", "rent", "investment", "other"]),
   timeline: z.enum(["immediate", "1_3_months", "3_6_months", "6_plus_months", "not_sure"]),
   preferredContactTime: z.enum(["morning", "afternoon", "evening", "anytime"]),
@@ -117,6 +114,10 @@ const LeadForm = () => {
       bathrooms: "2",
       amenities: [],
       leadSource: "website",
+      sourceGroup: "online",
+      sourceSubgroup: "company_website",
+      channel: "direct",
+      pathway: "website_enquiry",
       inquiryPurpose: "buy",
       timeline: "not_sure",
       preferredContactTime: "anytime",
@@ -581,36 +582,132 @@ const LeadForm = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="leadSource"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Lead Source</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="glass-input">
+                              <SelectValue placeholder="Select lead source" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {LEAD_SOURCES.map((s) => (
+                              <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>
+                          {LEAD_SOURCES.find((s) => s.value === field.value)?.description}
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="sourceGroup"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Source Group</FormLabel>
+                        <Select
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            form.setValue("sourceSubgroup", SOURCE_SUBGROUPS[value]?.[0]?.value ?? "");
+                          }}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="glass-input">
+                              <SelectValue placeholder="Select source group" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {SOURCE_GROUPS.map((g) => (
+                              <SelectItem key={g.value} value={g.value}>{g.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="sourceSubgroup"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Source Subgroup</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="glass-input">
+                              <SelectValue placeholder="Select source subgroup" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {(SOURCE_SUBGROUPS[form.watch("sourceGroup")] ?? []).map((sg) => (
+                              <SelectItem key={sg.value} value={sg.value}>{sg.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>Specific marketing/source mechanism</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="channel"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Channel</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="glass-input">
+                              <SelectValue placeholder="Select channel" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {CHANNELS.map((c) => (
+                              <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>
+                          {CHANNELS.find((c) => c.value === field.value)?.description}
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
                 <FormField
                   control={form.control}
-                  name="leadSource"
+                  name="pathway"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Lead Source</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormLabel>Pathway</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger className="glass-input">
-                            <SelectValue placeholder="Select lead source" />
+                            <SelectValue placeholder="Select pathway" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="website">Website Inquiry</SelectItem>
-                          <SelectItem value="social_media">Social Media Campaign</SelectItem>
-                          <SelectItem value="portal_99acres">99acres</SelectItem>
-                          <SelectItem value="portal_magicbricks">MagicBricks</SelectItem>
-                          <SelectItem value="portal_housing">Housing.com</SelectItem>
-                          <SelectItem value="portal_nobroker">NoBroker</SelectItem>
-                          <SelectItem value="walk_in">Walk-in / Site Visit</SelectItem>
-                          <SelectItem value="call_center">Call Center</SelectItem>
-                          <SelectItem value="email_marketing">Email Marketing</SelectItem>
-                          <SelectItem value="whatsapp">WhatsApp Campaign</SelectItem>
-                          <SelectItem value="chatbot">Chatbot / Virtual Assistant</SelectItem>
-                          <SelectItem value="channel_partner">Channel Partner / Broker</SelectItem>
-                          <SelectItem value="property_expo">Property Expo / Exhibition</SelectItem>
-                          <SelectItem value="referral">Referral</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
+                          {PATHWAYS.map((p) => (
+                            <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
+                      <FormDescription>Route the lead followed from source to sales interaction</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -810,7 +907,23 @@ const LeadForm = () => {
                     <dl className="space-y-2">
                       <div className="flex justify-between">
                         <dt className="text-sm font-medium text-muted-foreground">Lead Source:</dt>
-                        <dd className="text-sm capitalize">{form.getValues("leadSource").replace('_', ' ')}</dd>
+                        <dd className="text-sm">{labelOf(LEAD_SOURCES, form.getValues("leadSource"))}</dd>
+                      </div>
+                      <div className="flex justify-between">
+                        <dt className="text-sm font-medium text-muted-foreground">Source Group:</dt>
+                        <dd className="text-sm">{labelOf(SOURCE_GROUPS, form.getValues("sourceGroup"))}</dd>
+                      </div>
+                      <div className="flex justify-between">
+                        <dt className="text-sm font-medium text-muted-foreground">Source Subgroup:</dt>
+                        <dd className="text-sm">{subgroupLabel(form.getValues("sourceGroup"), form.getValues("sourceSubgroup"))}</dd>
+                      </div>
+                      <div className="flex justify-between">
+                        <dt className="text-sm font-medium text-muted-foreground">Channel:</dt>
+                        <dd className="text-sm">{labelOf(CHANNELS, form.getValues("channel"))}</dd>
+                      </div>
+                      <div className="flex justify-between">
+                        <dt className="text-sm font-medium text-muted-foreground">Pathway:</dt>
+                        <dd className="text-sm">{labelOf(PATHWAYS, form.getValues("pathway"))}</dd>
                       </div>
                       <div className="flex justify-between">
                         <dt className="text-sm font-medium text-muted-foreground">Purpose:</dt>
