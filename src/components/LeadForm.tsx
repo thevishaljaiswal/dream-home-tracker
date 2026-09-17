@@ -279,7 +279,7 @@ const LeadForm = () => {
                       <FormItem>
                         <FormLabel>Contact Number</FormLabel>
                         <FormControl>
-                          <Input type="tel" placeholder="+1 (555) 123-4567" {...field} className="glass-input" />
+                          <Input type="tel" placeholder="+91 98765 43210" {...field} className="glass-input" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
