@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
+import { formatINRShort, INDIAN_LOCATIONS } from "@/lib/currency";
 import { Slider } from "@/components/ui/slider";
 import { 
   Card, 
@@ -90,7 +91,7 @@ const LeadForm = () => {
       email: "",
       preferredContactMethod: "email",
       propertyType: "apartment",
-      budgetRange: [500000, 1500000],
+      budgetRange: [5000000, 12000000],
       locationPreference: "",
       bedrooms: "2",
       bathrooms: "2",
@@ -159,24 +160,24 @@ const LeadForm = () => {
   };
 
   const amenitiesOptions = [
+    { id: "clubhouse", label: "Clubhouse" },
     { id: "swimming_pool", label: "Swimming Pool" },
-    { id: "gym", label: "Gym" },
-    { id: "parking", label: "Parking" },
-    { id: "security", label: "24/7 Security" },
-    { id: "garden", label: "Garden" },
-    { id: "balcony", label: "Balcony" },
-    { id: "elevator", label: "Elevator" },
-    { id: "furnished", label: "Furnished" }
+    { id: "gym", label: "Gymnasium" },
+    { id: "covered_parking", label: "Covered Car Parking" },
+    { id: "security", label: "24x7 Security / CCTV" },
+    { id: "power_backup", label: "Power Backup / DG" },
+    { id: "lift", label: "Lift / Elevator" },
+    { id: "vastu", label: "Vastu Compliant" },
+    { id: "temple", label: "Temple / Prayer Room" },
+    { id: "childrens_play_area", label: "Children's Play Area" },
+    { id: "rain_water", label: "Rainwater Harvesting" },
+    { id: "servant_room", label: "Servant Room" },
+    { id: "modular_kitchen", label: "Modular Kitchen" },
+    { id: "rera", label: "RERA Registered Project" }
   ];
   
-  // Format currency for display
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0
-    }).format(value);
-  };
+  // Format currency for display (Indian rupees, lakh/crore)
+  const formatCurrency = (value: number) => formatINRShort(value);
 
   const stepsTitle = [
     "Personal Information",
@@ -357,11 +358,16 @@ const LeadForm = () => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="apartment">Apartment</SelectItem>
-                          <SelectItem value="villa">Villa</SelectItem>
-                          <SelectItem value="plot">Plot</SelectItem>
+                          <SelectItem value="apartment">Apartment / Flat</SelectItem>
+                          <SelectItem value="builder_floor">Builder Floor</SelectItem>
+                          <SelectItem value="villa">Villa / Bungalow</SelectItem>
+                          <SelectItem value="row_house">Row House</SelectItem>
+                          <SelectItem value="plot">Residential Plot / Land</SelectItem>
                           <SelectItem value="penthouse">Penthouse</SelectItem>
-                          <SelectItem value="commercial">Commercial</SelectItem>
+                          <SelectItem value="studio">Studio / 1RK</SelectItem>
+                          <SelectItem value="farmhouse">Farmhouse</SelectItem>
+                          <SelectItem value="shop">Retail Shop / Showroom</SelectItem>
+                          <SelectItem value="office">Office Space</SelectItem>
                           <SelectItem value="other">Other</SelectItem>
                         </SelectContent>
                       </Select>
@@ -379,9 +385,9 @@ const LeadForm = () => {
                       <FormControl>
                         <div className="space-y-4">
                           <Slider
-                            min={100000}
-                            max={5000000}
-                            step={50000}
+                            min={1000000}
+                            max={100000000}
+                            step={500000}
                             value={field.value}
                             onValueChange={field.onChange}
                             className="py-4"
@@ -406,9 +412,18 @@ const LeadForm = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Location Preference</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter preferred location" {...field} className="glass-input" />
-                      </FormControl>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="glass-input">
+                            <SelectValue placeholder="Select preferred city / micro-market" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {INDIAN_LOCATIONS.map((loc) => (
+                            <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -560,12 +575,18 @@ const LeadForm = () => {
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="website">Website Inquiry</SelectItem>
-                          <SelectItem value="social_media">Social Media</SelectItem>
-                          <SelectItem value="real_estate_portal">Real Estate Portal</SelectItem>
-                          <SelectItem value="walk_in">Walk-in</SelectItem>
+                          <SelectItem value="social_media">Social Media Campaign</SelectItem>
+                          <SelectItem value="portal_99acres">99acres</SelectItem>
+                          <SelectItem value="portal_magicbricks">MagicBricks</SelectItem>
+                          <SelectItem value="portal_housing">Housing.com</SelectItem>
+                          <SelectItem value="portal_nobroker">NoBroker</SelectItem>
+                          <SelectItem value="walk_in">Walk-in / Site Visit</SelectItem>
                           <SelectItem value="call_center">Call Center</SelectItem>
                           <SelectItem value="email_marketing">Email Marketing</SelectItem>
-                          <SelectItem value="chatbot">Chatbot</SelectItem>
+                          <SelectItem value="whatsapp">WhatsApp Campaign</SelectItem>
+                          <SelectItem value="chatbot">Chatbot / Virtual Assistant</SelectItem>
+                          <SelectItem value="channel_partner">Channel Partner / Broker</SelectItem>
+                          <SelectItem value="property_expo">Property Expo / Exhibition</SelectItem>
                           <SelectItem value="referral">Referral</SelectItem>
                           <SelectItem value="other">Other</SelectItem>
                         </SelectContent>
