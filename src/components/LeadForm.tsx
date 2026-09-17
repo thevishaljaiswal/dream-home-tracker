@@ -29,6 +29,15 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatINRShort, INDIAN_LOCATIONS } from "@/lib/currency";
+import {
+  LEAD_SOURCES,
+  SOURCE_GROUPS,
+  SOURCE_SUBGROUPS,
+  CHANNELS,
+  PATHWAYS,
+  labelOf,
+  subgroupLabel,
+} from "@/lib/leadSources";
 import { Slider } from "@/components/ui/slider";
 import { 
   Card, 
@@ -105,6 +114,10 @@ const LeadForm = () => {
       bathrooms: "2",
       amenities: [],
       leadSource: "website",
+      sourceGroup: "online",
+      sourceSubgroup: "company_website",
+      channel: "direct",
+      pathway: "website_enquiry",
       inquiryPurpose: "buy",
       timeline: "not_sure",
       preferredContactTime: "anytime",
@@ -569,36 +582,132 @@ const LeadForm = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="leadSource"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Lead Source</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="glass-input">
+                              <SelectValue placeholder="Select lead source" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {LEAD_SOURCES.map((s) => (
+                              <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>
+                          {LEAD_SOURCES.find((s) => s.value === field.value)?.description}
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="sourceGroup"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Source Group</FormLabel>
+                        <Select
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            form.setValue("sourceSubgroup", SOURCE_SUBGROUPS[value]?.[0]?.value ?? "");
+                          }}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="glass-input">
+                              <SelectValue placeholder="Select source group" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {SOURCE_GROUPS.map((g) => (
+                              <SelectItem key={g.value} value={g.value}>{g.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="sourceSubgroup"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Source Subgroup</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="glass-input">
+                              <SelectValue placeholder="Select source subgroup" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {(SOURCE_SUBGROUPS[form.watch("sourceGroup")] ?? []).map((sg) => (
+                              <SelectItem key={sg.value} value={sg.value}>{sg.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>Specific marketing/source mechanism</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="channel"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Channel</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="glass-input">
+                              <SelectValue placeholder="Select channel" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {CHANNELS.map((c) => (
+                              <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>
+                          {CHANNELS.find((c) => c.value === field.value)?.description}
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
                 <FormField
                   control={form.control}
-                  name="leadSource"
+                  name="pathway"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Lead Source</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormLabel>Pathway</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger className="glass-input">
-                            <SelectValue placeholder="Select lead source" />
+                            <SelectValue placeholder="Select pathway" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="website">Website Inquiry</SelectItem>
-                          <SelectItem value="social_media">Social Media Campaign</SelectItem>
-                          <SelectItem value="portal_99acres">99acres</SelectItem>
-                          <SelectItem value="portal_magicbricks">MagicBricks</SelectItem>
-                          <SelectItem value="portal_housing">Housing.com</SelectItem>
-                          <SelectItem value="portal_nobroker">NoBroker</SelectItem>
-                          <SelectItem value="walk_in">Walk-in / Site Visit</SelectItem>
-                          <SelectItem value="call_center">Call Center</SelectItem>
-                          <SelectItem value="email_marketing">Email Marketing</SelectItem>
-                          <SelectItem value="whatsapp">WhatsApp Campaign</SelectItem>
-                          <SelectItem value="chatbot">Chatbot / Virtual Assistant</SelectItem>
-                          <SelectItem value="channel_partner">Channel Partner / Broker</SelectItem>
-                          <SelectItem value="property_expo">Property Expo / Exhibition</SelectItem>
-                          <SelectItem value="referral">Referral</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
+                          {PATHWAYS.map((p) => (
+                            <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
+                      <FormDescription>Route the lead followed from source to sales interaction</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
