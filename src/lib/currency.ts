@@ -20,20 +20,7 @@ export const formatINRShort = (value: number) => {
 };
 
 export const INDIAN_LOCATIONS = [
-  'Mumbai - Andheri / Powai',
-  'Mumbai - Thane / Navi Mumbai',
-  'Pune - Hinjewadi / Wakad',
-  'Pune - Kharadi / Viman Nagar',
-  'Bengaluru - Whitefield / Sarjapur',
-  'Bengaluru - North (Hebbal / Yelahanka)',
-  'Delhi NCR - Gurugram',
-  'Delhi NCR - Noida / Greater Noida',
-  'Hyderabad - Gachibowli / Kokapet',
-  'Chennai - OMR / Pallikaranai',
-  'Kolkata - New Town / Rajarhat',
-  'Ahmedabad - SG Highway',
-  'Jaipur',
-  'Lucknow',
-  'Indore',
-  'Other',
+  'Pune - Hinjewadi',
+  'Pune - Kharadi',
+  'Pune - Bavdhan',
 ];
