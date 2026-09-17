@@ -71,23 +71,11 @@ const formSchema = z.object({
   amenities: z.array(z.string()).optional(),
   
   // Additional Details
-  leadSource: z.enum([
-    "website", 
-    "social_media", 
-    "portal_99acres",
-    "portal_magicbricks",
-    "portal_housing",
-    "portal_nobroker",
-    "walk_in", 
-    "call_center", 
-    "email_marketing", 
-    "whatsapp",
-    "chatbot", 
-    "channel_partner",
-    "property_expo",
-    "referral",
-    "other"
-  ]),
+  leadSource: z.string().min(1, "Lead source is required."),
+  sourceGroup: z.string().min(1, "Source group is required."),
+  sourceSubgroup: z.string().min(1, "Source subgroup is required."),
+  channel: z.string().min(1, "Channel is required."),
+  pathway: z.string().min(1, "Pathway is required."),
   inquiryPurpose: z.enum(["buy", "rent", "investment", "other"]),
   timeline: z.enum(["immediate", "1_3_months", "3_6_months", "6_plus_months", "not_sure"]),
   preferredContactTime: z.enum(["morning", "afternoon", "evening", "anytime"]),
