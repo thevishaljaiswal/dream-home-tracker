@@ -321,11 +321,16 @@ const Dashboard = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Properties</SelectItem>
-              <SelectItem value="apartment">Apartment</SelectItem>
-              <SelectItem value="villa">Villa</SelectItem>
-              <SelectItem value="plot">Plot</SelectItem>
+              <SelectItem value="apartment">Apartment / Flat</SelectItem>
+              <SelectItem value="builder_floor">Builder Floor</SelectItem>
+              <SelectItem value="villa">Villa / Bungalow</SelectItem>
+              <SelectItem value="row_house">Row House</SelectItem>
+              <SelectItem value="plot">Residential Plot / Land</SelectItem>
               <SelectItem value="penthouse">Penthouse</SelectItem>
-              <SelectItem value="commercial">Commercial</SelectItem>
+              <SelectItem value="studio">Studio / 1RK</SelectItem>
+              <SelectItem value="farmhouse">Farmhouse</SelectItem>
+              <SelectItem value="shop">Retail Shop / Showroom</SelectItem>
+              <SelectItem value="office">Office Space</SelectItem>
             </SelectContent>
           </Select>
           

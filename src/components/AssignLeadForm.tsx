@@ -12,10 +12,10 @@ interface AssignLeadFormProps {
 
 // In a real application, this would come from an API or database
 const dummyAgents = [
-  { id: '1', name: 'Sarah Johnson', specialty: 'Residential', location: 'Downtown' },
-  { id: '2', name: 'Michael Chen', specialty: 'Commercial', location: 'Midtown' },
-  { id: '3', name: 'Jessica Patel', specialty: 'Luxury Homes', location: 'Uptown' },
-  { id: '4', name: 'David Rodriguez', specialty: 'Investment', location: 'Suburbs' },
+  { id: '1', name: 'Rohit Sharma', specialty: 'Residential', location: 'Mumbai' },
+  { id: '2', name: 'Priya Nair', specialty: 'Commercial', location: 'Pune' },
+  { id: '3', name: 'Ankit Patel', specialty: 'Luxury Homes', location: 'Bengaluru' },
+  { id: '4', name: 'Sneha Iyer', specialty: 'Investment', location: 'Delhi NCR' },
 ];
 
 const AssignLeadForm: React.FC<AssignLeadFormProps> = ({ onAssign, currentAssignee }) => {

@@ -16,6 +16,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { formatINRShort } from '@/lib/currency';
 
 interface Lead {
   id: string;
@@ -43,13 +44,7 @@ interface CustomLeadCardProps {
 const CustomLeadCard: React.FC<CustomLeadCardProps> = ({ lead, onHotToggle }) => {
   const navigate = useNavigate();
   
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0
-    }).format(value);
-  };
+  const formatCurrency = (value: number) => formatINRShort(value);
 
   const timeDistance = formatDistanceToNow(new Date(lead.createdAt), { addSuffix: true });
   const formattedBudget = `${formatCurrency(lead.budgetRange[0])} - ${formatCurrency(lead.budgetRange[1])}`;
