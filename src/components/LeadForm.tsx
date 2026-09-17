@@ -44,12 +44,26 @@ const formSchema = z.object({
   // Personal Information
   firstName: z.string().min(2, "First name must be at least 2 characters."),
   lastName: z.string().min(2, "Last name must be at least 2 characters."),
-  contactNumber: z.string().min(10, "Phone number must be at least 10 digits."),
+  contactNumber: z
+    .string()
+    .regex(/^(\+91[\s-]?)?[6-9]\d{9}$/, "Enter a valid 10-digit Indian mobile number."),
   email: z.string().email("Please enter a valid email address."),
   preferredContactMethod: z.enum(["email", "phone", "sms", "whatsapp"]),
   
   // Property Preferences
-  propertyType: z.enum(["apartment", "villa", "plot", "penthouse", "commercial", "other"]),
+  propertyType: z.enum([
+    "apartment",
+    "builder_floor",
+    "villa",
+    "row_house",
+    "plot",
+    "penthouse",
+    "studio",
+    "farmhouse",
+    "shop",
+    "office",
+    "other"
+  ]),
   budgetRange: z.array(z.number()).length(2),
   locationPreference: z.string().min(1, "Location is required."),
   bedrooms: z.string(),
@@ -60,11 +74,17 @@ const formSchema = z.object({
   leadSource: z.enum([
     "website", 
     "social_media", 
-    "real_estate_portal", 
+    "portal_99acres",
+    "portal_magicbricks",
+    "portal_housing",
+    "portal_nobroker",
     "walk_in", 
     "call_center", 
     "email_marketing", 
+    "whatsapp",
     "chatbot", 
+    "channel_partner",
+    "property_expo",
     "referral",
     "other"
   ]),
