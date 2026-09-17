@@ -48,10 +48,10 @@ interface Lead {
 
 // In a real application, this would come from an API or database
 const dummyAgents = [
-  { id: '1', name: 'Sarah Johnson', specialty: 'Residential', location: 'Downtown', activeLeads: 0 },
-  { id: '2', name: 'Michael Chen', specialty: 'Commercial', location: 'Midtown', activeLeads: 0 },
-  { id: '3', name: 'Jessica Patel', specialty: 'Luxury Homes', location: 'Uptown', activeLeads: 0 },
-  { id: '4', name: 'David Rodriguez', specialty: 'Investment', location: 'Suburbs', activeLeads: 0 },
+  { id: '1', name: 'Rohit Sharma', specialty: 'Residential', location: 'Mumbai', activeLeads: 0 },
+  { id: '2', name: 'Priya Nair', specialty: 'Commercial', location: 'Pune', activeLeads: 0 },
+  { id: '3', name: 'Ankit Patel', specialty: 'Luxury Homes', location: 'Bengaluru', activeLeads: 0 },
+  { id: '4', name: 'Sneha Iyer', specialty: 'Investment', location: 'Delhi NCR', activeLeads: 0 },
 ];
 
 const AssignmentDashboard = () => {
@@ -307,10 +307,12 @@ const AssignmentDashboard = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Locations</SelectItem>
-                      <SelectItem value="downtown">Downtown</SelectItem>
-                      <SelectItem value="midtown">Midtown</SelectItem>
-                      <SelectItem value="uptown">Uptown</SelectItem>
-                      <SelectItem value="suburbs">Suburbs</SelectItem>
+                      <SelectItem value="mumbai">Mumbai</SelectItem>
+                      <SelectItem value="pune">Pune</SelectItem>
+                      <SelectItem value="bengaluru">Bengaluru</SelectItem>
+                      <SelectItem value="delhi_ncr">Delhi NCR</SelectItem>
+                      <SelectItem value="hyderabad">Hyderabad</SelectItem>
+                      <SelectItem value="chennai">Chennai</SelectItem>
                     </SelectContent>
                   </Select>
                   <Select value={filterProperty} onValueChange={setFilterProperty}>
