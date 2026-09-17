@@ -907,7 +907,23 @@ const LeadForm = () => {
                     <dl className="space-y-2">
                       <div className="flex justify-between">
                         <dt className="text-sm font-medium text-muted-foreground">Lead Source:</dt>
-                        <dd className="text-sm capitalize">{form.getValues("leadSource").replace('_', ' ')}</dd>
+                        <dd className="text-sm">{labelOf(LEAD_SOURCES, form.getValues("leadSource"))}</dd>
+                      </div>
+                      <div className="flex justify-between">
+                        <dt className="text-sm font-medium text-muted-foreground">Source Group:</dt>
+                        <dd className="text-sm">{labelOf(SOURCE_GROUPS, form.getValues("sourceGroup"))}</dd>
+                      </div>
+                      <div className="flex justify-between">
+                        <dt className="text-sm font-medium text-muted-foreground">Source Subgroup:</dt>
+                        <dd className="text-sm">{subgroupLabel(form.getValues("sourceGroup"), form.getValues("sourceSubgroup"))}</dd>
+                      </div>
+                      <div className="flex justify-between">
+                        <dt className="text-sm font-medium text-muted-foreground">Channel:</dt>
+                        <dd className="text-sm">{labelOf(CHANNELS, form.getValues("channel"))}</dd>
+                      </div>
+                      <div className="flex justify-between">
+                        <dt className="text-sm font-medium text-muted-foreground">Pathway:</dt>
+                        <dd className="text-sm">{labelOf(PATHWAYS, form.getValues("pathway"))}</dd>
                       </div>
                       <div className="flex justify-between">
                         <dt className="text-sm font-medium text-muted-foreground">Purpose:</dt>
