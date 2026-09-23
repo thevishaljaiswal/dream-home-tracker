@@ -8,7 +8,8 @@ import {
   Bell, 
   ArrowRight,
   Building2,
-  FileText
+  FileText,
+  Coins
 } from 'lucide-react';
 
 interface Activity {
@@ -114,6 +115,8 @@ const LeadTimeline: React.FC<{ lead: Lead }> = ({ lead }) => {
         return <Building2 className="h-5 w-5 text-indigo-500" />;
       case 'quotation':
         return <FileText className="h-5 w-5 text-teal-500" />;
+      case 'token':
+        return <Coins className="h-5 w-5 text-amber-600" />;
       default:
         return <MessageSquare className="h-5 w-5 text-gray-500" />;
     }
