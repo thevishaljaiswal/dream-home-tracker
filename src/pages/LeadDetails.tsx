@@ -118,6 +118,58 @@ const LeadDetails = () => {
     fetchLead();
   }, [id]);
 
+  useEffect(() => {
+    if (!id) return;
+    const ranked = rankTokens(loadTokens());
+    saveTokens(ranked);
+    setTokens(ranked.filter((t) => t.leadId === id));
+  }, [id]);
+
+  const logTokenActivity = (description: string) => {
+    setLead((prev) => {
+      if (!prev) return prev;
+      const updated: Lead = {
+        ...prev,
+        activities: [
+          ...(prev.activities || []),
+          {
+            id: crypto.randomUUID(),
+            leadId: prev.id,
+            type: 'token',
+            description,
+            date: new Date().toISOString(),
+          },
+        ],
+      };
+      const storedLeads = localStorage.getItem('leads');
+      if (storedLeads) {
+        const parsedLeads = JSON.parse(storedLeads);
+        localStorage.setItem(
+          'leads',
+          JSON.stringify(parsedLeads.map((l: Lead) => (l.id === updated.id ? updated : l)))
+        );
+      }
+      return updated;
+    });
+  };
+
+  const handleSaveToken = (token: EOIToken) => {
+    const all = upsertToken(token);
+    setTokens(all.filter((t) => t.leadId === token.leadId));
+    const lastEntry = token.log?.[token.log.length - 1];
+    logTokenActivity(
+      `EOI token ${token.tokenNumber} ${lastEntry?.action.replace(/_/g, ' ') || 'updated'} — ${token.projectName} (${token.unitConfiguration})`
+    );
+  };
+
+  const handleDeleteToken = (tokenId: string) => {
+    const removed = tokens.find((t) => t.id === tokenId);
+    const all = deleteToken(tokenId);
+    setTokens(all.filter((t) => t.leadId === id));
+    if (removed) logTokenActivity(`EOI token ${removed.tokenNumber} deleted`);
+  };
+
+
   const getStageProgress = () => {
     const stages = ['new', 'contacted', 'qualified', 'proposal', 'negotiation', 'closed'];
     if (!lead?.stage) return 0;
