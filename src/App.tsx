@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import LeadCapture from "./pages/LeadCapture";
 import LeadsOverview from "./pages/LeadsOverview";
 import LeadDetails from "./pages/LeadDetails";
+import Tokens from "./pages/Tokens";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/capture" element={<LeadCapture />} />
           <Route path="/leads" element={<LeadsOverview />} />
           <Route path="/lead/:id" element={<LeadDetails />} />
+          <Route path="/tokens" element={<Tokens />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

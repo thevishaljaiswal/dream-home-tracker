@@ -30,7 +30,10 @@ import TaskReminder from '@/components/TaskReminder';
 import LeadTimeline from '@/components/LeadTimeline';
 import AssignLeadForm from '@/components/AssignLeadForm';
 import LeadEnquiries from '@/components/LeadEnquiries';
+import LeadTokens from '@/components/LeadTokens';
 import { Enquiry } from '@/types/enquiry';
+import { EOIToken } from '@/types/token';
+import { deleteToken, loadTokens, rankTokens, saveTokens, upsertToken } from '@/lib/tokenStore';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from '@/hooks/use-toast';
 import { formatINRShort } from '@/lib/currency';
@@ -88,6 +91,8 @@ const LeadDetails = () => {
   const navigate = useNavigate();
   const [lead, setLead] = useState<Lead | null>(null);
   const [loading, setLoading] = useState(true);
+  const [tokens, setTokens] = useState<EOIToken[]>([]);
+
 
   useEffect(() => {
     const fetchLead = () => {
@@ -112,6 +117,58 @@ const LeadDetails = () => {
 
     fetchLead();
   }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+    const ranked = rankTokens(loadTokens());
+    saveTokens(ranked);
+    setTokens(ranked.filter((t) => t.leadId === id));
+  }, [id]);
+
+  const logTokenActivity = (description: string) => {
+    setLead((prev) => {
+      if (!prev) return prev;
+      const updated: Lead = {
+        ...prev,
+        activities: [
+          ...(prev.activities || []),
+          {
+            id: crypto.randomUUID(),
+            leadId: prev.id,
+            type: 'token',
+            description,
+            date: new Date().toISOString(),
+          },
+        ],
+      };
+      const storedLeads = localStorage.getItem('leads');
+      if (storedLeads) {
+        const parsedLeads = JSON.parse(storedLeads);
+        localStorage.setItem(
+          'leads',
+          JSON.stringify(parsedLeads.map((l: Lead) => (l.id === updated.id ? updated : l)))
+        );
+      }
+      return updated;
+    });
+  };
+
+  const handleSaveToken = (token: EOIToken) => {
+    const all = upsertToken(token);
+    setTokens(all.filter((t) => t.leadId === token.leadId));
+    const lastEntry = token.log?.[token.log.length - 1];
+    logTokenActivity(
+      `EOI token ${token.tokenNumber} ${lastEntry?.action.replace(/_/g, ' ') || 'updated'} — ${token.projectName} (${token.unitConfiguration})`
+    );
+  };
+
+  const handleDeleteToken = (tokenId: string) => {
+    const removed = tokens.find((t) => t.id === tokenId);
+    const all = deleteToken(tokenId);
+    setTokens(all.filter((t) => t.leadId === id));
+    if (removed) logTokenActivity(`EOI token ${removed.tokenNumber} deleted`);
+  };
+
 
   const getStageProgress = () => {
     const stages = ['new', 'contacted', 'qualified', 'proposal', 'negotiation', 'closed'];
@@ -582,9 +639,23 @@ const LeadDetails = () => {
               <TabsTrigger value="enquiries">
                 Enquiries {lead.enquiries?.length ? `(${lead.enquiries.length})` : ''}
               </TabsTrigger>
+              <TabsTrigger value="tokens">
+                EOI Tokens {tokens.length ? `(${tokens.length})` : ''}
+              </TabsTrigger>
               <TabsTrigger value="timeline">Activity Timeline</TabsTrigger>
               <TabsTrigger value="conversion">Conversion Analytics</TabsTrigger>
             </TabsList>
+            <TabsContent value="tokens" className="mt-6">
+              <LeadTokens
+                leadId={lead.id}
+                leadName={`${lead.firstName} ${lead.lastName}`}
+                leadContact={lead.contactNumber}
+                enquiries={lead.enquiries || []}
+                tokens={tokens}
+                onSaveToken={handleSaveToken}
+                onDeleteToken={handleDeleteToken}
+              />
+            </TabsContent>
             <TabsContent value="enquiries" className="mt-6">
               <LeadEnquiries
                 enquiries={lead.enquiries || []}

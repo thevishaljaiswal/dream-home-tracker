@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Home, Users, PlusCircle } from 'lucide-react';
+import { Home, Users, PlusCircle, Coins } from 'lucide-react';
 
 const Header = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -21,6 +21,7 @@ const Header = () => {
     { name: 'Home', path: '/', icon: <Home className="h-4 w-4 mr-2" /> },
     { name: 'New Lead', path: '/capture', icon: <PlusCircle className="h-4 w-4 mr-2" /> },
     { name: 'Leads', path: '/leads', icon: <Users className="h-4 w-4 mr-2" /> },
+    { name: 'EOI Tokens', path: '/tokens', icon: <Coins className="h-4 w-4 mr-2" /> },
   ];
 
   return (
