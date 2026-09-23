@@ -91,6 +91,8 @@ const LeadDetails = () => {
   const navigate = useNavigate();
   const [lead, setLead] = useState<Lead | null>(null);
   const [loading, setLoading] = useState(true);
+  const [tokens, setTokens] = useState<EOIToken[]>([]);
+
 
   useEffect(() => {
     const fetchLead = () => {
