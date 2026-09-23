@@ -639,9 +639,23 @@ const LeadDetails = () => {
               <TabsTrigger value="enquiries">
                 Enquiries {lead.enquiries?.length ? `(${lead.enquiries.length})` : ''}
               </TabsTrigger>
+              <TabsTrigger value="tokens">
+                EOI Tokens {tokens.length ? `(${tokens.length})` : ''}
+              </TabsTrigger>
               <TabsTrigger value="timeline">Activity Timeline</TabsTrigger>
               <TabsTrigger value="conversion">Conversion Analytics</TabsTrigger>
             </TabsList>
+            <TabsContent value="tokens" className="mt-6">
+              <LeadTokens
+                leadId={lead.id}
+                leadName={`${lead.firstName} ${lead.lastName}`}
+                leadContact={lead.contactNumber}
+                enquiries={lead.enquiries || []}
+                tokens={tokens}
+                onSaveToken={handleSaveToken}
+                onDeleteToken={handleDeleteToken}
+              />
+            </TabsContent>
             <TabsContent value="enquiries" className="mt-6">
               <LeadEnquiries
                 enquiries={lead.enquiries || []}
